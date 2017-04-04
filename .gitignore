@@ -1,0 +1,13 @@
+*.dsk
+*.txt
+*.o
+attrfile
+checkin
+checkout
+delfile
+efs
+getattr
+libefs
+testread
+testwrite
+makefs
