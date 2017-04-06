@@ -14,7 +14,7 @@ int _oftCount=0;
 void initFS(const char *fsPartitionName, const char *fsPassword)
 {
 	mountFS(fsPartitionName, fsPassword);
-	TFileSystemStruct *fs = getFSInfo();
+	_fs = getFSInfo();
 }
 
 // Opens a file in the partition. Depending on mode, a new file may be created
@@ -23,45 +23,50 @@ void initFS(const char *fsPartitionName, const char *fsPassword)
 // disk is full when mode is MODE_CREATE, etc.
 
 int openFile(const char *filename, unsigned char mode)
-{		
-    _oft->openMode = mode;
+{	
+	//_oft = (TOpenFile *)malloc(sizeof(TOpenFile));
+	_oft = new TOpenFile();
+	_oft->openMode = mode;
 	_oft->blockSize = _fs->blockSize;
-	
-	unsigned int dirEntry = findFile(filename);
+	_oft->inode = getInodeForFile(filename);
+	_oft->inodeBuffer = makeInodeBuffer();
+	_oft->buffer = makeDataBuffer();
+	_oft->readPtr = *_oft->buffer;
+	_oft->writePtr = *_oft->buffer;
+
+	unsigned int fileNdx = findFile(filename); 
+
+	if(fileNdx == FS_FILE_NOT_FOUND){
+		printf("Cannot find encrypted file %s\n", filename);
+		exit(-1);
+	}
+
+	loadInode(_oft->inodeBuffer, _oft->inode);
+
+	unsigned long blockNum = _oft->buffer[0];
+
+	unsigned int len = getFileLength(filename);
+
+	FILE *fp = fopen(filename, "w");
+
 	switch (mode)
 	{
-		case MODE_NORMAL:		
-			if (dirEntry == FS_FILE_NOT_FOUND)
-			{
-				return -1;
-			}
-			else 
-			{
-				// somehow update open file table
-				unsigned long *inodeBuff = makeInodeBuffer();
-				char *buffer = makeDataBuffer();
-				unsigned int len = getFileLength(filename);
-				
-				_oft->inode = *inodeBuff;
-				_oft->writePtr = *buffer;
-				_oft->readPtr = *buffer;
-				
-				loadInode(inodeBuff, dirEntry);
-				unsigned long blockNum = inodeBuff[0];
-				readBlock(buffer, blockNum);
-			}
+		case MODE_NORMAL:
 			break;
 		case MODE_CREATE:
-			if (dirEntry == FS_FILE_NOT_FOUND)
-			{
-				
-			}
-			else
-			{
-				
-			}
 			break;
 		case MODE_READ_ONLY:
+			readBlock(_oft->buffer, blockNum);
+
+			unmountFS();
+
+			fwrite(_oft->buffer, sizeof(char), len, fp);
+
+			fclose(fp);
+
+			free(_oft->inodeBuffer);
+			free(_oft->buffer);
+
 			break;
 		case MODE_READ_APPEND:
 			break;
@@ -95,5 +100,7 @@ void delFile(const char *filename);
 void closeFile(int fp);
 
 // Unmount file system.
-void closeFS();
+void closeFS(){
+	unmountFS();
+};
 
