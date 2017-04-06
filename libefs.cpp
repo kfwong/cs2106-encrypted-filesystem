@@ -9,10 +9,12 @@ TOpenFile *_oft;
 // Open file table counter
 int _oftCount=0;
 
-// Mounts a paritition given in fsPartitionName. Must be called before all
+// Mounts a partition given in fsPartitionName. Must be called before all
 // other functions
 void initFS(const char *fsPartitionName, const char *fsPassword)
 {
+	mountFS(fsPartitionName, fsPassword);
+	TFileSystemStruct *fs = getFSInfo();
 }
 
 // Opens a file in the partition. Depending on mode, a new file may be created
@@ -21,8 +23,51 @@ void initFS(const char *fsPartitionName, const char *fsPassword)
 // disk is full when mode is MODE_CREATE, etc.
 
 int openFile(const char *filename, unsigned char mode)
-{
-	return -1;
+{		
+    _oft->openMode = mode;
+	_oft->blockSize = _fs->blockSize;
+	
+	unsigned int dirEntry = findFile(filename);
+	switch (mode)
+	{
+		case MODE_NORMAL:		
+			if (dirEntry == FS_FILE_NOT_FOUND)
+			{
+				return -1;
+			}
+			else 
+			{
+				// somehow update open file table
+				unsigned long *inodeBuff = makeInodeBuffer();
+				char *buffer = makeDataBuffer();
+				unsigned int len = getFileLength(filename);
+				
+				_oft->inode = *inodeBuff;
+				_oft->writePtr = *buffer;
+				_oft->readPtr = *buffer;
+				
+				loadInode(inodeBuff, dirEntry);
+				unsigned long blockNum = inodeBuff[0];
+				readBlock(buffer, blockNum);
+			}
+			break;
+		case MODE_CREATE:
+			if (dirEntry == FS_FILE_NOT_FOUND)
+			{
+				
+			}
+			else
+			{
+				
+			}
+			break;
+		case MODE_READ_ONLY:
+			break;
+		case MODE_READ_APPEND:
+			break;
+		default:
+			return -1;
+	}
 }
 
 // Write data to the file. File must be opened in MODE_NORMAL or MODE_CREATE modes. Does nothing
