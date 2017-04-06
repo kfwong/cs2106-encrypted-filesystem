@@ -43,7 +43,7 @@ int openFile(const char *filename, unsigned char mode)
 
 	loadInode(_oft->inodeBuffer, _oft->inode);
 
-	unsigned long blockNum = _oft->buffer[0];
+	unsigned long blockNum = _oft->inodeBuffer[0];
 
 	unsigned int len = getFileLength(filename);
 
