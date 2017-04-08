@@ -6,6 +6,9 @@ TFileSystemStruct *_fs;
 // Open File Table
 TOpenFile *_oft;
 
+// File pointer, because fuck structs
+FILE *_fp;
+
 // Open file table counter
 int _oftCount=0;
 
@@ -28,7 +31,6 @@ int openFile(const char *filename, unsigned char mode)
 	_oft = new TOpenFile();
 	_oft->openMode = mode;
 	_oft->blockSize = _fs->blockSize;
-	_oft->inode = getInodeForFile(filename);
 	_oft->inodeBuffer = makeInodeBuffer();
 	_oft->buffer = makeDataBuffer();
 	_oft->readPtr = *_oft->buffer;
@@ -36,39 +38,86 @@ int openFile(const char *filename, unsigned char mode)
 
 	unsigned int fileNdx = findFile(filename); 
 
-	if(fileNdx == FS_FILE_NOT_FOUND){
-		printf("Cannot find encrypted file %s\n", filename);
-		exit(-1);
-	}
-
-	loadInode(_oft->inodeBuffer, _oft->inode);
-
-	unsigned long blockNum = _oft->inodeBuffer[0];
-
 	unsigned int len = getFileLength(filename);
-
-	FILE *fp = fopen(filename, "w");
+	
+	unsigned long blockNum;
+	
+	unsigned long byteIndex;
+	
+	unsigned long freeBlock;
+	
+	unsigned int dirNdx;
 
 	switch (mode)
 	{
 		case MODE_NORMAL:
+			if(fileNdx == FS_FILE_NOT_FOUND){
+				printf("Cannot find encrypted file %s\n", filename);
+				exit(-1);
+			}
+			_oft->inode = getInodeForFile(filename);
+			loadInode(_oft->inodeBuffer, _oft->inode);
+			blockNum = _oft->inodeBuffer[0];
+			
+			// calculate byte offset
+			byteIndex = _fs->dataByteIndex + (blockNum-1) * _fs->blockSize;
+			fseek(_fp, byteIndex, SEEK_SET);
+			
+			//_oft->filePtr = *_fp;
+
 			break;
 		case MODE_CREATE:
+		    if(fileNdx == FS_FILE_NOT_FOUND){
+				// create new file
+				
+				// Write the directory entry
+				dirNdx = makeDirectoryEntry(filename, 0x0, 0);
+				
+				// Find a free block
+				freeBlock = findFreeBlock();
+				
+				// Mark the free block now as busy
+				markBlockBusy(freeBlock);
+				
+			}
+			_oft->inode = getInodeForFile(filename);
+			loadInode(_oft->inodeBuffer, _oft->inode);
+			blockNum = _oft->inodeBuffer[0];
+			
+			byteIndex = _fs->dataByteIndex + (blockNum-1) * _fs->blockSize;
+			fseek(_fp, byteIndex, SEEK_SET);
+			
+			//_oft->filePtr = _fp;
 			break;
 		case MODE_READ_ONLY:
-			readBlock(_oft->buffer, blockNum);
-
-			unmountFS();
-
-			fwrite(_oft->buffer, sizeof(char), len, fp);
-
-			fclose(fp);
-
-			free(_oft->inodeBuffer);
-			free(_oft->buffer);
-
+			if(fileNdx == FS_FILE_NOT_FOUND){
+				printf("Cannot find encrypted file %s\n", filename);
+				exit(-1);
+			}
+			_oft->inode = getInodeForFile(filename);
+			loadInode(_oft->inodeBuffer, _oft->inode);
+			blockNum = _oft->inodeBuffer[0];
+			printf("%lu", blockNum);
+			
+			byteIndex = _fs->dataByteIndex + (blockNum-1) * _fs->blockSize;
+			fseek(_fp, byteIndex, SEEK_SET);
+			
+			//_oft->filePtr = _fp;
 			break;
 		case MODE_READ_APPEND:
+			if(fileNdx == FS_FILE_NOT_FOUND){
+				printf("Cannot find encrypted file %s\n", filename);
+				exit(-1);
+			}
+			_oft->inode = getInodeForFile(filename);
+			loadInode(_oft->inodeBuffer, _oft->inode);
+			blockNum = _oft->inodeBuffer[0];
+			
+			byteIndex = _fs->dataByteIndex + (blockNum-1) * _fs->blockSize;
+			//filePtr starts from back of file
+			fseek(_fp, byteIndex, SEEK_END);
+			
+			//_oft->filePtr = _fp;
 			break;
 		default:
 			return -1;
@@ -90,6 +139,18 @@ void flushFile(int fp)
 // Read data from the file.
 void readFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCount)
 {
+	/*
+	readBlock(_oft->buffer, blockNum);
+
+	unmountFS();
+
+	fwrite(_oft->buffer, sizeof(char), len, fp);
+
+	fclose(fp);
+
+	free(_oft->inodeBuffer);
+	free(_oft->buffer);
+	*/
 }
 
 // Delete the file. Read-only flag (bit 2 of the attr field) in directory listing must not be set. 
