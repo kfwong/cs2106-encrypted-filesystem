@@ -9,6 +9,28 @@ int main(int ac, char **av)
 		return -1;
 	}
 
+	unsigned int attr = getattr(av[1]);
+	
+	if (attr == FS_FILE_NOT_FOUND)
+	{
+		printf("File not found\n");
+		return -1;
+	}
+	
+	if (av[2] == "r" || av[2] == "R")
+	{
+		setattr(av[1], 2);
+	}
+	else if (av[2] == "w" || av[2] == "W")
+	{
+		setattr(av[1], 1);
+	}
+	else
+	{
+		printf("Invalid input\n");
+		printf("Attribute: 'R' = Read only, 'W' = Read/Write\n\n");
+		return -1;
+	}
 	
 	
 	return 0;

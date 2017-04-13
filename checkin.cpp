@@ -10,6 +10,11 @@ int main(int ac, char **av)
 	
 	initFS("part.dsk", av[2]);
 	
-
+	char *buffer;
+	
+	int fp = openFile(av[1], MODE_NORMAL);
+	
+	//writeFile(fp, buffer, len, 0);
+	
 	return 0;
 }
