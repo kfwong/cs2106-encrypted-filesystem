@@ -1,7 +1,5 @@
 #include "efs.h"
 
-// File pointer, because fuck structs
-FILE *_filePtr;
 
 /* FILE MODES for opening a file */
 enum
@@ -26,7 +24,7 @@ typedef struct oft
   unsigned int readPtr; // Buffer index for reading data
   unsigned long *filePtr; // File pointer. Points relative to ALL data in a file, not just the current buffer
   const char *fileName;
-  unsigned char available; // 0 for taken, 1 for free
+  unsigned char available = 0; // 0 for free, 1 for taken
 } TOpenFile;
 
 // Mounts a partition given in fsPartitionName. Must be called before all

@@ -9,14 +9,10 @@ int main(int ac, char **av)
 	}
 
 	initFS("part.dsk", av[2]);
-	
-	int fp = openFile(av[1], 2);
-	
-	readFile(fp, _oft->readBuffer, 0, 0);
-	
-	closeFile(fp);
-	
-	closeFS();
+
+	int fp = openFile(av[1], MODE_READ_ONLY);
+
+	readFile(fp, makeDataBuffer(), 0, 0);
 	
 	return 0;
 }

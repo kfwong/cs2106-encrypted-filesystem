@@ -15,7 +15,7 @@ void initFS(const char *fsPartitionName, const char *fsPassword)
 {
 	mountFS(fsPartitionName, fsPassword);
 	_fs = getFSInfo();
-	_oft = new TOpenFile[1000]();
+	_oft = (TOpenFile *) malloc (1000 * sizeof(TOpenFile));
 }
 
 // Opens a file in the partition. Depending on mode, a new file may be created
@@ -45,7 +45,7 @@ int openFile(const char *filename, unsigned char mode)
 	// loop through all entries in open file table
 	while (i < 1000)
 	{
-		if (_oft[i].available != 0)
+		if (_oft[i].available != 1)
 		{
 			// set oft values
 			_oft[i].openMode = mode;
@@ -56,12 +56,12 @@ int openFile(const char *filename, unsigned char mode)
 			_oft[i].readPtr = *_oft->buffer;
 			_oft[i].writePtr = *_oft->buffer;
 			_oft[i].fileName = filename;
-			_oft[i].available = 0;
+			_oft[i].available = 1;
 				
 			return i;
 		}
+
 		i++;
-		
 	}
 	
 }
@@ -83,20 +83,23 @@ void readFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCoun
 {
 	TOpenFile file = _oft[fp];
 	
-	FILE *outfile = fopen(filename, "w");
+	FILE *outfile = fopen(file.fileName, "w");
 
-	loadInode(_oft->inodeBuffer, _oft->inode);
+	unsigned int len = getFileLength(_oft[fp].fileName);
 
-	unsigned long blockNum = _oft->inodeBuffer[0];
+	loadInode(file.inodeBuffer, file.inode);
 
-	readBlock(buffer, blockNum);
+	unsigned long blockNum = file.inodeBuffer[0];
 
-	fwrite(_oft->buffer, dataSize, dataCount, outfile);
+	readBlock(file.buffer, blockNum);
 
-	fclose(fp);
+	fwrite(file.buffer, sizeof(char), len, outfile);
 
-	free(_oft->inodeBuffer);
-	free(_oft->buffer);
+	fclose(outfile);
+
+	free(file.inodeBuffer);
+	free(file.buffer);
+	
 }
 
 // Delete the file. Read-only flag (bit 2 of the attr field) in directory listing must not be set. 
