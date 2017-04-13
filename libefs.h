@@ -22,6 +22,7 @@ typedef struct oft
   unsigned int writePtr; // Buffer index for writing data
   unsigned int readPtr; // Buffer index for reading data
   unsigned int filePtr; // File pointer. Points relative to ALL data in a file, not just the current buffer
+  unsigned int filename; // store list of filenames
 } TOpenFile;
 
 // Mounts a paritition given in fsPartitionName. Must be called before all
