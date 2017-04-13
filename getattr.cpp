@@ -8,6 +8,10 @@ int main(int ac, char **av)
 		printf("Prints: 'R' = Read only, 'W' = Read/Write\n\n");
 		return -1;
 	}
+	
+	getattr(av[1], av[2]);
+	
+	
 
 	return 0;
 }

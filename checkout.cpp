@@ -1,7 +1,4 @@
 #include "libefs.h"
-#include <iostream>
-
-using namespace std;
 
 int main(int ac, char **av)
 {
@@ -10,10 +7,16 @@ int main(int ac, char **av)
 		printf("\nUsage: %s <file to check out> <password>\n\n", av[0]);
 		return -1;
 	}
-	
+
 	initFS("part.dsk", av[2]);
-
-	openFile(av[1], MODE_READ_ONLY);
-
+	
+	int fp = openFile(av[1], 2);
+	
+	readFile(fp, _oft->readBuffer, 0, 0);
+	
+	closeFile(fp);
+	
+	closeFS();
+	
 	return 0;
 }

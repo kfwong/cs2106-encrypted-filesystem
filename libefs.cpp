@@ -26,29 +26,44 @@ void initFS(const char *fsPartitionName, const char *fsPassword)
 int openFile(const char *filename, unsigned char mode)
 {	
 	unsigned int fileNdx = findFile(filename); 
+	
+	unsigned int len = getFileLength(filename);
 
-	if(fileNdx == FS_FILE_NOT_FOUND){
-		if(mode == MODE_NORMAL || mode == MODE_READ_ONLY){
-			printf("Cannot find encrypted file %s\n", filename);
+	if(fileNdx == FS_FILE_NOT_FOUND)
+	{
+		if(mode == MODE_NORMAL || mode == MODE_READ_ONLY)
+		{
+			printf("FILE NOT FOUND\n");
 			exit(-1);
-		}else if(mode == MODE_CREATE || mode == MODE_APPEND){
-			// create if not exists
+		}else if(mode == MODE_CREATE || mode == MODE_READ_APPEND)
+		{
+			// create new file
 		}
 	}
-
-	_oft = new TOpenFile[1000]();
-
-	_oft->openMode = mode;
-	_oft->blockSize = _fs->blockSize;
-	_oft->inode = getInodeForFile(filename);
-	_oft->inodeBuffer = makeInodeBuffer();
-	_oft->buffer = makeDataBuffer();
-	_oft->readPtr = *_oft->buffer;
-	_oft->writePtr = *_oft->buffer;
+	int i = 0;
+		
+	// loop through all entries in open file table
+	while (i < 1000)
+	{
+		if (_oft[i].available != 0)
+		{
+			// set oft values
+			_oft[i].openMode = mode;
+			_oft[i].blockSize = _fs->blockSize;
+			_oft[i].inode = getInodeForFile(filename);
+			_oft[i].inodeBuffer = makeInodeBuffer();
+			_oft[i].buffer = makeDataBuffer();
+			_oft[i].readPtr = *_oft->buffer;
+			_oft[i].writePtr = *_oft->buffer;
+			_oft[i].fileName = filename;
+			_oft[i].available = 0;
+				
+			return i;
+		}
+		i++;
+		
+	}
 	
-
-
-	unsigned int len = getFileLength(filename);
 }
 
 // Write data to the file. File must be opened in MODE_NORMAL or MODE_CREATE modes. Does nothing
@@ -66,15 +81,15 @@ void flushFile(int fp)
 // Read data from the file.
 void readFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCount)
 {
-	File *outfile = fopen(filename, "w");
+	TOpenFile file = _oft[fp];
+	
+	FILE *outfile = fopen(filename, "w");
 
 	loadInode(_oft->inodeBuffer, _oft->inode);
 
 	unsigned long blockNum = _oft->inodeBuffer[0];
 
 	readBlock(buffer, blockNum);
-
-	unmountFS();
 
 	fwrite(_oft->buffer, dataSize, dataCount, outfile);
 
