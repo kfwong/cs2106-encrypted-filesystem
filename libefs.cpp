@@ -10,6 +10,10 @@ TOpenFile *_oft;
 // Open file table counter
 int _oftCount=0;
 
+const char *_filename;
+
+unsigned long _len;
+
 // Mounts a partition given in fsPartitionName. Must be called before all
 // other functions
 void initFS(const char *fsPartitionName, const char *fsPassword)
@@ -37,6 +41,8 @@ void checkDuplicate(const char *filename)
 
 int openFile(const char *filename, unsigned char mode)
 {	
+	_filename = filename;
+
 	unsigned int fileNdx = findFile(filename); 
 	
 	unsigned int len = getFileLength(filename);
@@ -49,76 +55,20 @@ int openFile(const char *filename, unsigned char mode)
 			exit(-1);
 		}else if(mode == MODE_CREATE || mode == MODE_READ_APPEND)
 		{
-			// create empty file, with the data in buffer
-			
-			char* buffer;
-			// Read the file
-			FILE *fptr = fopen(filename, "r");
-			unsigned long len = fread(buffer, sizeof(char), _fs->blockSize, fptr);
 
-			// Write the directory entry
-			unsigned int dirNdx = makeDirectoryEntry(filename, 0x0, len);
-			
-			if (dirNdx == FS_DIR_FULL)
-			{
-				printf("Disk is full");
-				exit(-1);
-			}
 
-			// Find a free block
-			unsigned long freeBlock = findFreeBlock();
-			
-			/*double timesToWrite = ceil(len/8192);
+			if(mode == MODE_CREATE){
+				char *buffer;
 
-            while(timesToWrite > 0){
-				freeBlock = findFreeBlock()
+				// Allocate the buffer for reading
+				buffer = makeDataBuffer();
 
-                timesToWrite --;
-            } */
-
-			writeBlock(buffer, freeBlock);
-			// Mark the free block now as busy
-			markBlockBusy(freeBlock);
-			
-			// Create the inode buffer
-			unsigned long *inode = makeInodeBuffer();
-
-			// Load the inode
-			loadInode(inode, dirNdx);
-
-			// Set the first entry of the inode to the free block
-			inode[0]=freeBlock;
-			
-			// Write the data to the block
-			writeBlock(buffer, freeBlock);
-			
-			// Write the inode
-			saveInode(inode, dirNdx);
-			
-			updateDirectory();
-			int i = 0;
-			while (i < 1000)
-			{
-				if (_oft[i].available != 1)
-				{
-					// set oft values
-					_oft[i].openMode = mode;
-					_oft[i].blockSize = _fs->blockSize;
-					_oft[i].inode = getInodeForFile(filename);
-					_oft[i].inodeBuffer = makeInodeBuffer();
-					_oft[i].buffer = buffer;
-					_oft[i].readPtr = 0;
-					_oft[i].writePtr = len;
-					_oft[i].fileName = filename;
-					_oft[i].available = 1;
+				writeFile(fileNdx, buffer, sizeof(char), 0);
 				
-					_oftCount++;
-					return i;
-				}
-				i++;
 			}
 		}
 	}
+
 	int i = 0;
 		
 	// loop through all entries in open file table
@@ -150,28 +100,63 @@ int openFile(const char *filename, unsigned char mode)
 // if file is opened in MODE_READ_ONLY mode.
 void writeFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCount)
 {
-	TOpenFile file = _oft[fp];
-	
+	//TOpenFile file = _oft[fp];
+	/*
 	if (file.openMode == MODE_READ_ONLY)
 	{
 		return;
 	}
-	/*
+	*/
+
+	printf("saving");
+
+	FILE *fptr = fopen(_filename, "r");
+
+	// Get the FS metadata
+	TFileSystemStruct *fs = getFSInfo();
+
+	char *_buffer;
+
+	// Allocate the buffer for reading
+	_buffer = makeDataBuffer();
+
+	unsigned long len2 = fread(_buffer, sizeof(char), fs->blockSize, fptr);
+	
+	// Write the directory entry
+	unsigned int dirNdx = makeDirectoryEntry(_filename, 0x0, len2);
+
+	// Find a free block
+	unsigned long freeBlock = findFreeBlock();
+
+	// Mark the free block now as busy
+	markBlockBusy(freeBlock);
+
 	// Create the inode buffer
 	unsigned long *inode = makeInodeBuffer();
 
-	// Load the inode
+	// Load the
 	loadInode(inode, dirNdx);
 
 	// Set the first entry of the inode to the free block
 	inode[0]=freeBlock;
 
 	// Write the data to the block
-	writeBlock(buffer, freeBlock);
+	writeBlock(_buffer, freeBlock);
 
 	// Write the inode
-	saveInode(inode, dirNdx);	
-    */	
+	saveInode(inode, dirNdx);
+
+	// Write the free list
+	updateFreeList();
+
+	// Write the diretory
+	updateDirectory();
+
+	// Free data and inode buffer
+	free(_buffer);
+	free(inode);
+	
+	
 }
 
 // Flush the file data to the disk. Writes all data buffers, updates directory,
