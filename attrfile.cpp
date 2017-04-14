@@ -8,6 +8,8 @@ int main(int ac, char **av)
 		printf("Attribute: 'R' = Read only, 'W' = Read/Write\n\n");
 		return -1;
 	}
+	
+	initFS("part.dsk", av[2]);
 
 	unsigned int attr = getattr(av[1]);
 	

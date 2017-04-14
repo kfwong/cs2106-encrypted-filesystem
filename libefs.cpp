@@ -64,7 +64,7 @@ int openFile(const char *filename, unsigned char mode)
 
 			// Write the inode
 			saveInode(inode, dirNdx);
-
+			int i = 0;
 			while (i < 1000)
 			{
 				if (_oft[i].available != 1)
@@ -118,7 +118,13 @@ int openFile(const char *filename, unsigned char mode)
 // if file is opened in MODE_READ_ONLY mode.
 void writeFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCount)
 {
-	/*TOpenFile file = _oft[fp];
+	TOpenFile file = _oft[fp];
+	
+	if (file.openMode == MODE_READ_ONLY)
+	{
+		return;
+	}
+	/*
 	// Create the inode buffer
 	unsigned long *inode = makeInodeBuffer();
 
@@ -132,8 +138,8 @@ void writeFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCou
 	writeBlock(buffer, freeBlock);
 
 	// Write the inode
-	saveInode(inode, dirNdx);		
-	*/
+	saveInode(inode, dirNdx);	
+    */	
 }
 
 // Flush the file data to the disk. Writes all data buffers, updates directory,
