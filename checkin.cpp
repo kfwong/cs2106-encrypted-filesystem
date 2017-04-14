@@ -10,7 +10,7 @@ int main(int ac, char **av)
 	
 	initFS("part.dsk", av[2]);
 	
-	checkDuplicate(av[1]);
+	//checkDuplicate(av[1]);
 	
 	char *buffer;
 	

@@ -76,7 +76,7 @@ int openFile(const char *filename, unsigned char mode)
                 timesToWrite --;
             } */
 
-			writeBlock(buffer, freeBlock);
+
 			// Mark the free block now as busy
 			markBlockBusy(freeBlock);
 			
