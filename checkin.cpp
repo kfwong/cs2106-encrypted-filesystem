@@ -10,8 +10,6 @@ int main(int ac, char **av)
 	
 	initFS("part.dsk", av[2]);
 	
-	checkDuplicate(av[1]);
-	
 	char *buffer;
 	
 	int fp = openFile(av[1], MODE_CREATE);

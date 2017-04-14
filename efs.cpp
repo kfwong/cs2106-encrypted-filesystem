@@ -270,20 +270,6 @@ unsigned int delDirectoryEntry(const char *filename)
   return ndx;
 }
 
-bool containsFile(const char *filename)
-{
-	unsigned int i;
-
-	for(i=0; i<_fsDescriptor.maxFiles; i++)
-	{
-		if(!strcmp(_directory[i].filename, filename))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 // Search directory for file
 unsigned int findFile(const char *filename)
 {

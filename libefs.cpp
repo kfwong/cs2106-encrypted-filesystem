@@ -23,15 +23,6 @@ void initFS(const char *fsPartitionName, const char *fsPassword)
 	_oft = (TOpenFile *) malloc (1000 * sizeof(TOpenFile));
 }
 
-// checks for duplicate files
-void checkDuplicate(const char *filename)
-{
-	if(containsFile(filename) == true)
-	{
-		printf("Duplicate file error");
-		exit(-1);
-	}
-}
 
 
 // Opens a file in the partition. Depending on mode, a new file may be created
@@ -58,6 +49,8 @@ int openFile(const char *filename, unsigned char mode)
 
 
 			if(mode == MODE_CREATE){
+
+
 				char *buffer;
 
 				// Allocate the buffer for reading
@@ -66,6 +59,11 @@ int openFile(const char *filename, unsigned char mode)
 				writeFile(fileNdx, buffer, sizeof(char), 0);
 				
 			}
+		}
+	}else{
+		if(mode == MODE_CREATE){
+			printf("Duplicate file error");
+			exit(-1);
 		}
 	}
 
