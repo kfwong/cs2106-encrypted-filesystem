@@ -31,6 +31,11 @@ typedef struct oft
 // other functions
 void initFS(const char *fsPartitionName, const char *fsPassword);
 
+bool containsFile(const char *filename);
+
+//checks for duplicates
+void checkDuplicate(const char *filename);
+
 // Opens a file in the partition. Depending on mode, a new file may be created
 // if it doesn't exist, or we may get FS_FILE_NOT_FOUND in _result. See the enum above for valid modes.
 // Return -1 if file open fails for some reason. E.g. file not found when mode is MODE_NORMAL, or

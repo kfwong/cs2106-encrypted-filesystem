@@ -1,5 +1,6 @@
 #include "libefs.h"
 
+
 // FS Descriptor
 TFileSystemStruct *_fs;
 
@@ -17,6 +18,17 @@ void initFS(const char *fsPartitionName, const char *fsPassword)
 	_fs = getFSInfo();
 	_oft = (TOpenFile *) malloc (1000 * sizeof(TOpenFile));
 }
+
+// checks for duplicate files
+void checkDuplicate(const char *filename)
+{
+	if(containsFile(filename) == true)
+	{
+		printf("Duplicate file error");
+		exit(-1);
+	}
+}
+
 
 // Opens a file in the partition. Depending on mode, a new file may be created
 // if it doesn't exist, or we may get FS_FILE_NOT_FOUND in _result. See the enum above for valid modes.
@@ -67,6 +79,8 @@ int openFile(const char *filename, unsigned char mode)
 			
 			// Write the inode
 			saveInode(inode, dirNdx);
+			
+			updateDirectory();
 			int i = 0;
 			while (i < 1000)
 			{
@@ -218,6 +232,9 @@ void closeFile(int fp)
 	TOpenFile file = _oft[fp];
 	flushFile(fp);
 	file.available = 0;
+
+	updateFreeList();
+	updateDirectory();
 }
 
 // Unmount file system.

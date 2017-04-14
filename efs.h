@@ -90,6 +90,7 @@ unsigned int updateDirectoryFileLength(const char *filename, unsigned long len);
 // Remove directory entry
 unsigned int delDirectoryEntry(const char *filename);
 
+bool containsFile(const char *filename);
 // Search directory for file
 unsigned int findFile(const char *filename);
 
