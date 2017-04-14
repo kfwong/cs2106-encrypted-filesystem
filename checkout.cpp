@@ -14,5 +14,7 @@ int main(int ac, char **av)
 
 	readFile(fp, makeDataBuffer(), 0, 0);
 	
+	closeFS();
+	
 	return 0;
 }

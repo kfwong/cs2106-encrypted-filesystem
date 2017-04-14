@@ -179,13 +179,33 @@ void readFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCoun
 
 // Delete the file. Read-only flag (bit 2 of the attr field) in directory listing must not be set. 
 // See TDirectory structure.
-void delFile(const char *filename);
+void delFile(const char *filename)
+{
+	unsigned int attr = getattr(filename);
+	
+	if (attr == 2)
+	{
+		printf("File is read only");
+		return;
+	}
+	
+	unsigned int fileNdx = findFile(filename);
+	
+	if(fileNdx == FS_FILE_NOT_FOUND)
+	{
+		printf("File not found");
+		return;
+	}
+	
+	delDirectoryEntry(filename);
+	
+}	
 
 // Close a file. Flushes all data buffers, updates inode, directory, etc.
 void closeFile(int fp)
 {
 	TOpenFile file = _oft[fp];
-	flushfile(fp);
+	flushFile(fp);
 	file.available = 0;
 }
 

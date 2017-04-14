@@ -7,6 +7,8 @@ int main(int ac, char **av)
 		printf("\nUsage: %s <file to delete>\n\n", av[0]);
 		return -1;
 	}
+	
+	delFile(av[1]);
 
 	return 0;
 }

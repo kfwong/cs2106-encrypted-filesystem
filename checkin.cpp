@@ -16,5 +16,7 @@ int main(int ac, char **av)
 	
 	//writeFile(fp, buffer, len, 0);
 	
+	closeFS();
+	
 	return 0;
 }
