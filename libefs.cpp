@@ -58,10 +58,25 @@ int openFile(const char *filename, unsigned char mode)
 
 			// Write the directory entry
 			unsigned int dirNdx = makeDirectoryEntry(filename, 0x0, len);
+			
+			if (dirNdx == FS_DIR_FULL)
+			{
+				printf("Disk is full");
+				exit(-1);
+			}
 
 			// Find a free block
 			unsigned long freeBlock = findFreeBlock();
 			
+			/*double timesToWrite = ceil(len/8192);
+
+            while(timesToWrite > 0){
+				freeBlock = findFreeBlock()
+
+                timesToWrite --;
+            } */
+
+			writeBlock(buffer, freeBlock);
 			// Mark the free block now as busy
 			markBlockBusy(freeBlock);
 			

@@ -9,6 +9,8 @@ int main(int ac, char **av)
 		return -1;
 	}
 	
+	initFS("part.dsk", "pwd");
+	
 	unsigned int attr = getattr(av[1]);
 	
 	if (attr == 2)

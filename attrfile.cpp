@@ -8,6 +8,8 @@ int main(int ac, char **av)
 		printf("Attribute: 'R' = Read only, 'W' = Read/Write\n\n");
 		return -1;
 	}
+	
+	initFS("part.dsk", "pwd");
 
 	unsigned int attr = getattr(av[1]);
 	
@@ -20,10 +22,12 @@ int main(int ac, char **av)
 	if (strcmp(av[2], "r") == 0 || strcmp(av[2], "R") == 0)
 	{
 		setattr(av[1], 2);
+		updateDirectory();
 	}
 	else if (strcmp(av[2], "w") == 0 || strcmp(av[2],"W") == 0)
 	{
 		setattr(av[1], 1);
+		updateDirectory();
 	}
 	else
 	{

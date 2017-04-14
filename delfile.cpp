@@ -8,6 +8,8 @@ int main(int ac, char **av)
 		return -1;
 	}
 	
+	initFS("part.dsk", "pwd");
+	
 	delFile(av[1]);
 
 	return 0;
