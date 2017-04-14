@@ -38,8 +38,6 @@ void checkDuplicate(const char *filename)
 int openFile(const char *filename, unsigned char mode)
 {	
 	unsigned int fileNdx = findFile(filename); 
-	
-	unsigned int len = getFileLength(filename);
 
 	if(fileNdx == FS_FILE_NOT_FOUND)
 	{
@@ -55,7 +53,7 @@ int openFile(const char *filename, unsigned char mode)
 			// Read the file
 			FILE *fptr = fopen(filename, "r");
 			unsigned long len = fread(buffer, sizeof(char), _fs->blockSize, fptr);
-
+			
 			// Write the directory entry
 			unsigned int dirNdx = makeDirectoryEntry(filename, 0x0, len);
 			
@@ -67,34 +65,64 @@ int openFile(const char *filename, unsigned char mode)
 
 			// Find a free block
 			unsigned long freeBlock = findFreeBlock();
-			
-			/*double timesToWrite = ceil(len/8192);
-
-            while(timesToWrite > 0){
-				freeBlock = findFreeBlock()
-
-                timesToWrite --;
-            } */
-
 
 			// Mark the free block now as busy
 			markBlockBusy(freeBlock);
+
+			// Create the inode buffer
+			unsigned long *inode = makeInodeBuffer();
+
+			// Load the
+			loadInode(inode, dirNdx);
+
+			// Set the first entry of the inode to the free block
+			inode[0]=freeBlock;
+
+			// Write the data to the block
+			writeBlock(buffer, freeBlock);
+
+			// Write the inode
+			saveInode(inode, dirNdx);
+
+/*
+			// Write the directory entry
+			unsigned int dirNdx = makeDirectoryEntry(filename, 0x0, len);
+			
+			if (dirNdx == FS_DIR_FULL)
+			{
+				printf("Disk is full");
+				exit(-1);
+			}
+
+			// Find a free block
+			unsigned long freeBlock;
 			
 			// Create the inode buffer
 			unsigned long *inode = makeInodeBuffer();
 
 			// Load the inode
 			loadInode(inode, dirNdx);
+			
+			int timesToWrite = 0;
 
-			// Set the first entry of the inode to the free block
-			inode[0]=freeBlock;
+            while(timesToWrite < ceil(len/8192)){
+				freeBlock = findFreeBlock();
+
+				// Mark the free block now as busy
+				markBlockBusy(freeBlock);
+				
+				// Set the first entry of the inode to the free block
+				inode[timesToWrite]=freeBlock;
+				
+				// Write the data to the block
+				writeBlock(buffer, freeBlock);
 			
-			// Write the data to the block
-			writeBlock(buffer, freeBlock);
-			
+                timesToWrite++;
+            } 
+
 			// Write the inode
 			saveInode(inode, dirNdx);
-			
+*/			
 			updateDirectory();
 			int i = 0;
 			while (i < 1000)
