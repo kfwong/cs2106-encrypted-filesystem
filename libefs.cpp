@@ -197,7 +197,18 @@ void delFile(const char *filename)
 		return;
 	}
 	
+	// Create the inode buffer
+	unsigned long *inode = makeInodeBuffer();
+
+	// Load the inode
+	loadInode(inode, fileNdx);
+	
+	unsigned long blockNum = inode[0];
+	markBlockFree(blockNum);
+	updateFreeList();
+	
 	delDirectoryEntry(filename);
+	updateDirectory();
 	
 }	
 
