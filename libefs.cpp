@@ -61,7 +61,10 @@ int openFile(const char *filename, unsigned char mode)
 
 			// Set the first entry of the inode to the free block
 			inode[0]=freeBlock;
-
+			
+			// Write the data to the block
+			writeBlock(buffer, freeBlock);
+			
 			// Write the inode
 			saveInode(inode, dirNdx);
 			int i = 0;
@@ -179,7 +182,12 @@ void readFile(int fp, void *buffer, unsigned int dataSize, unsigned int dataCoun
 void delFile(const char *filename);
 
 // Close a file. Flushes all data buffers, updates inode, directory, etc.
-void closeFile(int fp);
+void closeFile(int fp)
+{
+	TOpenFile file = _oft[fp];
+	flushfile(fp);
+	file.available = 0;
+}
 
 // Unmount file system.
 void closeFS(){
